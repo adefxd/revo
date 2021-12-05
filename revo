@@ -1,0 +1,51 @@
+local https = game:GetService("HttpService")
+local Players = game.Players
+local player = Players.LocalPlayer
+
+for i , v in pairs(getconnections(player.Idled)) do 
+    v:Disable()    
+end
+
+function getCar()
+    for i,v in pairs(game:GetService("Workspace").Cars:GetChildren()) do 
+        if v.Player.Value == player then 
+            return v
+        end
+    end
+end
+
+local car = getCar()
+local new = nil
+local change = false 
+game:GetService("ReplicatedStorage").Remotes.MoneyChanged.OnClientEvent:Connect(function(val)
+    warn(val)
+    game:GetService("RunService").Heartbeat:wait()
+    change = true 
+end)
+workspace.ChildAdded:Connect(function(part)
+    new = true 
+    wait()
+    if part.Name == 'CheckpointCircle' and not part:FindFirstChildOfClass("BillboardGui")  then 
+        new = part
+        repeat
+            car.Base.CFrame = part.CFrame 
+            car.Base.Velocity = Vector3.new(200,10,200)
+            wait(.1)
+            firetouchinterest(car.Base,workspace.CheckpointCircle,1)
+        until change == true
+        
+        change = false
+        part:Destroy()
+        new = nil
+    end
+    new = false 
+end)
+
+while true do 
+    game:GetService("RunService").Heartbeat:wait()
+    if not new then 
+        game:GetService("ReplicatedStorage").SharedCode.MadLib.Postie.sent:FireServer("SendRaceRequest", https:GenerateGUID(false), game:GetService("Players").LocalPlayer)
+        firesignal(game:GetService("Players").LocalPlayer.PlayerGui.MainGui:WaitForChild("RequestPrompt"):WaitForChild("YesButton").MouseButton1Click)
+        repeat game:GetService("RunService").Heartbeat:wait() until change
+    end
+end
